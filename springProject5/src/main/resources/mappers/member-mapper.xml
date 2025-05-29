@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 비어있을 수 없음 필수입력 요소 (해당 mapper를 부르는 별칭)-->
+<mapper namespace="memberMapper">
+	
+	<!-- 조회 결과를 VO에 매핑 시키는 도구 resultMap 작성해보기  -->
+	
+	<resultMap type="Member" id="memberResultMap">
+		<result property="userId" column="USER_ID"/>
+		<result property="userPwd" column="USER_PWD"/>
+		<result property="userName" column="USER_NAME"/>
+<!-- 		<result property="email" column="EMAIL"/> -->
+<!-- 		<result property="gender" column="GENDER"/> -->
+<!-- 		<result property="age" column="AGE"/> -->
+<!-- 		<result property="phone" column="PHONE"/> -->
+<!-- 		<result property="address" column="ADDRESS"/> -->
+		<result property="enrollDate" column="ENROLL_DATE"/>
+		<result property="modifyDate" column="MODIFY_DATE"/>
+		<result property="status" column="STATUS"/>
+	</resultMap>
+
+	<!-- 별칭 등록 했으니 com.kh.spring.member.model.vo.Member 를 Member로 사용가능 -->
+	<select id="loginMember" parameterType="Member" resultMap="memberResultMap">
+		SELECT USER_ID 
+			  ,USER_PWD
+			  ,USER_NAME
+			  ,EMAIL
+			  ,GENDER
+			  ,AGE
+			  ,PHONE
+			  ,ADDRESS
+		      ,ENROLL_DATE
+			  ,MODIFY_DATE
+			  ,STATUS
+		FROM MEMBER 
+		WHERE USER_ID = #{userId}
+<!-- 		AND USER_PWD = #{userPwd}  암호화 후 로그인 기능시 비밀번호 비교 불가-->
+		AND STATUS = 'Y'
+	</select>
+	
+	<!-- DML구문은 항상 처리된 행 수 가 반환되기 때문에 결과타입을 작성할 필요가 없다. 작성하지 않음 -->
+	<!-- parameterType은 마이바티스가 자동추론하기 때문에 생략해도 무방하다.  -->
+	<insert id="insertMember" parameterType="Member"> 
+		INSERT INTO MEMBER(USER_ID
+		                  ,USER_PWD
+		                  ,USER_NAME
+		                  ,EMAIL
+		                  ,GENDER
+		                  ,AGE
+		                  ,PHONE
+		                  ,ADDRESS)
+           		    VALUES(#{userId}
+           		    	  ,#{userPwd}
+           		    	  ,#{userName}
+           		    	  ,#{email}
+           		    	  ,#{gender}
+           		    	  ,#{age}
+           		    	  ,#{phone}
+           		    	  ,#{address})
+	</insert>
+	
+	
+	<update id="updateMember" parameterType="Member">
+		UPDATE MEMBER
+		SET USER_NAME = #{userName}
+		   ,EMAIL = #{email}
+		   ,AGE =#{age}
+		   ,PHONE = #{phone}
+		   ,ADDRESS = #{address}
+		   ,GENDER = #{gender}
+		   ,MODIFY_DATE = SYSDATE
+		WHERE USER_ID = #{userId}
+		AND STATUS = 'Y'	
+	</update>
+	
+	<update id="deleteMember" parameterType="Member">
+		UPDATE MEMBER
+		SET STATUS = 'N'
+		WHERE USER_ID = #{userId}
+	</update>
+	
+	
+	<select id="idCheck" resultType="_int">
+		SELECT COUNT(*)
+		FROM MEMBER
+		WHERE USER_ID = #{userId}
+	</select>
+	
+	
+	
+	
+  
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 비어있을 수 없음 필수입력 요소 (해당 mapper를 부르는 별칭)-->
+<mapper namespace="testMapper">
+	
+	<insert id="insertCategory">
+		INSERT INTO CATEGORY VALUES(#{categoryNo},#{categoryName})
+	</insert>
+	
+	<insert id="insertProduct">
+		INSERT INTO PRODUCT VALUES(#{productNo},#{productName},#{categoryNo})
+	</insert>
+	 
+	 <select id="selectCList" resultMap="categoryResultMap">
+	 	SELECT *
+	 	FROM CATEGORY
+	 </select>
+	 
+	 <select id="selectPList" resultMap="productResultMap">
+	 	SELECT * 
+	 	FROM PRODUCT
+	 </select>
+	 
+	 <!-- 별칭등록 + resultMap 작성 -->
+	 <resultMap type="Category" id="categoryResultMap">
+	 	<result column="CATEGORY_NO" property="categoryNo"/>
+	 	<result column="CATEGORY_NAME" property="categoryName"/>
+	 </resultMap>
+	 
+	 <resultMap type="Product" id="productResultMap">
+	 	<result column="PRODUCT_NO" property="productNo"/>
+	 	<result column="PRODUCT_NAME" property="productName"/>
+	 	<result column="CATEGORY_NO" property="categoryNo"/>
+	 </resultMap>
+	 
+  
+</mapper>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xsi:schemaLocation="http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket-4.3.xsd
+		http://www.springframework.org/schema/mvc https://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+	<!-- 스프링의 핵심 부품인 DispatcherServlet에 등록 되어야하는 설정들 기록하는 설정 파일 -->
+	
+	
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven />
+	<!-- 
+		component-scan에 등록되어 있는 base-package 하위 경로들에 있는 어노테이션들을 활성화 해주는 설정
+		ex)@RequestMapping,@Transaction,....
+	 -->
+
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<resources mapping="/resources/**" location="/resources/" />
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<!-- 
+		요청 주소 자동 완성 도구 
+		기존 forward 작업을 수행하려면 보여주고자 하는 뷰 페이지 경로를 입력해야 했다.
+		해당 경로를 기본으로 설정하여 생략할 수 있도록 해주는 설정으로 
+		앞쪽엔 /WEB-INF/views/ 를 붙이고 뒤쪽엔 .jsp 를 붙여준다.
+		
+		spring 에서 제공하는 ViewResolver 객체이며 
+		prefix : 접두사 / suffix : 접미사로 등록되어 있다.
+	
+	 -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+	</beans:bean>
+	
+	
+	<!-- 인터셉터 등록 : 어떠한 요청에 어떠한 인터셉터를 동작시킬것인지 등록하는 작업 -->
+	<interceptors>
+		<interceptor>
+			<!-- /* : 첫번째 레벨 전체 요청 , /** : 추가레벨까지 전체 요청 -->
+			<!--  <mapping path="/*"/> --> <!-- mapping path : 어떤 요청에 동작시킬것인지 -->
+			<!-- 
+			<mapping path="/mypage.me"/>
+			<mapping path="/update.me"/>
+			<mapping path="/delete.me"/>
+			<mapping path="/logout.me"/>
+			<mapping path="/insert.bo"/>
+			<mapping path="/update.bo"/>
+			<mapping path="/delete.bo"/>
+			 -->
+			 <!-- 매핑 묶어서 통합처리 해보기 -->
+			 <mapping path="/*.me"/> <!-- .me 가 붙은 요청 전체 -->
+			 <exclude-mapping path="/login.me"/> <!-- 특정 요청 제외 -->
+			 <exclude-mapping path="/insert.me"/>
+			 <exclude-mapping path="/idCheck.me"/>
+			 
+			<!-- beans:bean class : 등록할 인터셉터의 풀 경로 -->
+			<beans:bean class="com.kh.spring.common.interceptor.LoginInterceptor"/>
+		</interceptor>
+	</interceptors>
+	
+	
+	
+	<!-- 
+		base-package에서 설정된 패키지와 그 이하 패키지들을 감시하여 등록 가능한 도구(Component)를 모두 찾아
+		등록시켜주는 설정 @Component가 붙어있는 클래스들을 bean으로 등록시켜준다
+		ex) @Controller,@Service,@Repository, @Component 
+		root-context에서 스캔한 어노테이션들은 servlet-context에서는 제외시켜야 된다(중복방지)
+	
+	 -->
+	 
+	 <!-- 웹소켓 서버 등록 위치 -->
+	 <!-- 웹소켓 서버 클래스 풀 경로, id값은 해당 웹소켓서버의 임의의 아이디값 -->
+	 <beans:bean class="com.kh.spring.websocket.server.WebSocketBasicServer" id="basicServer"/>
+	 <beans:bean class="com.kh.spring.websocket.server.WebSocketGroupServer" id="groupServer"/>
+	 <beans:bean class="com.kh.spring.websocket.server.WebSocketMemberServer" id="memberServer"/>
+	 <beans:bean class="com.kh.spring.websocket.server.WebSocketPrivateChatServer" id="chatServer"/>
+	 
+	 <!-- 접속 대상 지정 - 요청에 따라 어떤 서버가 응답할것인지 설정 -->
+	 <websocket:handlers >
+	 		<!--기존 요청이라면 -  http://localhost:8889/spring/basic  
+	 			websocket 요청 - ws://localhost:8889/spring/basic 
+	 		-->
+	 		<!-- handler : 어떠한 서버가 요청을 받아줄것인지 설정  path : 요청매핑주소 -->
+	 		<websocket:mapping handler="basicServer" path="/basic"/>
+	 		<websocket:mapping handler="groupServer" path="/group"/>
+	 		<websocket:mapping handler="memberServer" path="/member"/>
+	 		<websocket:mapping handler="chatServer" path="/chat"/>
+	 
+	 		<!-- Http통신으로 요청되어진 HttpSession 정보를 가지고 오기위한 설정 -->
+	 		<websocket:handshake-interceptors>
+	 			<beans:bean class="org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor" />
+	 		</websocket:handshake-interceptors>
+	 
+	 </websocket:handlers>
+	 
+	 
+	 
+	 <!-- 파일 업로드 처리용 MultipartResolver 등록하기  -->
+	<beans:bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+		<!-- 업로드 되는 파일에 대한 인코딩 설정 -->
+		<beans:property name="defaultEncoding" value="UTF-8"/>
+		<!-- 용량제한 : 10*1024*1024 로 10MB 정도 설정하기 (계산식이 적용되지 않기때문에 직접 크기 설정)-->
+		<beans:property name="maxUploadSize" value="100000000"/> <!-- 업로드 파일 용량 제한 -->
+		<beans:property name="maxInMemorySize" value="100000000"/> <!-- 임시 메모리 보관 크기설정 -->
+	</beans:bean>
+	 
+	<!-- root-context에서 등록한 컴포넌트들은 제외시키기(중복충돌방지) -->
+	<context:component-scan base-package="com.kh.spring" >
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+	</context:component-scan>
+	
+	
+	
+</beans:beans>

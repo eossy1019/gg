@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 비어있을 수 없음 필수입력 요소 (해당 mapper를 부르는 별칭)-->
+<mapper namespace="boardMapper">
+	
+	<select id="listCount" resultType="_int">
+		SELECT COUNT(*)
+		FROM BOARD
+		WHERE STATUS = 'Y'
+	</select>
+	
+	<resultMap type="Board" id="boardResultMap">
+		<result column="BOARD_NO" property="boardNo"/>
+		<result column="BOARD_TITLE" property="boardTitle"/>
+		<result column="BOARD_WRITER" property="boardWriter"/>
+		<result column="BOARD_CONTENT" property="boardContent"/>
+		<result column="ORIGIN_NAME" property="originName"/>
+		<result column="CHANGE_NAME" property="changeName"/>
+		<result column="COUNT" property="count"/>
+		<result column="CREATE_DATE" property="createDate"/>
+		<result column="STATUS" property="status"/>
+	</resultMap>
+	
+	<select id="boardList" resultMap="boardResultMap">
+		SELECT BOARD_NO
+		      ,BOARD_TITLE
+		      ,BOARD_WRITER
+		      ,ORIGIN_NAME
+		      ,COUNT
+		      ,CREATE_DATE
+		FROM BOARD
+		WHERE STATUS ='Y'
+		ORDER BY CREATE_DATE DESC
+	</select>	
+	
+	<update id="increaseCount" parameterType="_int">
+		UPDATE BOARD
+		SET COUNT = COUNT + 1
+		WHERE BOARD_NO = #{bno}
+		AND STATUS = 'Y'
+	</update>
+	 
+	<select id="boardDetail" resultMap="boardResultMap">
+		SELECT BOARD_NO
+			  ,BOARD_TITLE
+			  ,BOARD_WRITER
+			  ,BOARD_CONTENT
+			  ,CREATE_DATE
+			  ,ORIGIN_NAME
+			  ,CHANGE_NAME
+		FROM BOARD
+		WHERE BOARD_NO = #{bno}
+		AND STATUS = 'Y'
+	</select>
+	 
+	 
+	 <insert id="insertBoard" parameterType="Board">
+	 	INSERT INTO BOARD   (
+	 						 BOARD_NO
+							,BOARD_TITLE
+							,BOARD_WRITER
+							,BOARD_CONTENT
+							,ORIGIN_NAME
+							,CHANGE_NAME
+							)
+	 				VALUES (
+	 						SEQ_BNO.NEXTVAL
+	 					   ,#{boardTitle}
+	 					   ,#{boardWriter}
+	 					   ,#{boardContent}
+	 					   ,#{originName}
+	 					   ,#{changeName}
+	 					   )
+	 </insert>
+	 
+	 
+	 <delete id="deleteBoard" parameterType="_int">
+	 	DELETE FROM BOARD
+	 	WHERE BOARD_NO = #{bno}
+	 </delete>
+	 
+	 <update id="updateBoard" parameterType="Board">
+	 	UPDATE BOARD
+	 	SET BOARD_TITLE = #{boardTitle}
+	 	   ,BOARD_CONTENT = #{boardContent}
+	 	   ,ORIGIN_NAME = #{originName}
+	 	   ,CHANGE_NAME = #{changeName}
+	 	WHERE BOARD_NO = #{boardNo}
+	 </update>
+	 
+	 <!-- 검색목록 개수 -->
+	 <select id="searchCount" resultType="_int" parameterType="hashmap">
+	 	SELECT COUNT(*)
+	 	FROM BOARD
+	 	WHERE STATUS = 'Y'
+	 	<choose>
+	 		<when test="condition=='writer'">
+	 			AND BOARD_WRITER 
+	 		</when>
+	 		<when test="condition=='content'">
+	 			AND BOARD_CONTENT 
+	 		</when>
+	 		<otherwise>
+	 			AND BOARD_TITLE 
+	 		</otherwise>
+	 	</choose>
+	 	LIKE '%' || #{keyword} || '%'
+	 
+	 </select>
+	 
+	 
+	 <select id="searchList" resultMap="boardResultMap" parameterType="hashmap">
+		SELECT BOARD_NO
+		      ,BOARD_TITLE
+		      ,BOARD_WRITER
+		      ,ORIGIN_NAME
+		      ,COUNT
+		      ,CREATE_DATE
+		FROM BOARD
+		WHERE STATUS ='Y'
+		<choose>
+	 		<when test="condition=='writer'">
+	 			AND BOARD_WRITER 
+	 		</when>
+	 		<when test="condition=='content'">
+	 			AND BOARD_CONTENT 
+	 		</when>
+	 		<otherwise>
+	 			AND BOARD_TITLE 
+	 		</otherwise>
+	 	</choose>
+	 	LIKE '%' || #{keyword} || '%'
+		ORDER BY CREATE_DATE DESC
+	</select>	
+	
+	<resultMap type="Reply" id="replyResultMap">
+		<result column="REPLY_NO" property="replyNo"/>
+		<result column="REPLY_CONTENT" property="replyContent"/>
+		<result column="REPLY_WRITER" property="replyWriter"/>
+		<result column="CREATE_DATE" property="createDate"/>
+	</resultMap>
+	
+	<select id="replyList" resultMap="replyResultMap">
+		SELECT REPLY_NO 
+		      ,REPLY_CONTENT
+		      ,REPLY_WRITER
+		      ,CREATE_DATE
+		FROM REPLY
+		WHERE REF_BNO = #{boardNo}
+		AND STATUS = 'Y'	
+	</select>
+	
+	<insert id="insertReply" parameterType="Reply">
+		INSERT INTO REPLY(REPLY_NO
+						 ,REPLY_WRITER
+						 ,REPLY_CONTENT
+						 ,REF_BNO) 
+					VALUES(SEQ_RNO.NEXTVAL
+						  ,#{replyWriter}
+						  ,#{replyContent}
+						  ,#{refBno})	
+	</insert>
+	
+	<select id="topList" resultMap="boardResultMap">
+		SELECT *
+		FROM
+		(SELECT BOARD_NO
+		      ,BOARD_TITLE
+		      ,BOARD_WRITER
+		      ,ORIGIN_NAME
+		      ,COUNT
+		      ,CREATE_DATE
+		FROM BOARD
+		WHERE STATUS ='Y'
+		ORDER BY COUNT DESC)
+<!-- 		WHERE ROWNUM BETWEEN 1 AND 5 -->
+		<!-- XML문서에서 <> 와 같은 특수문자를 사용할땐 태그로 인식되지 않게 하기 위한
+			<![CDATA[구문]]>  - 구문을 사용할수있다. 구문쪽에 작성된 특수문자는 문자열로 인식됨
+		 -->
+		<![CDATA[WHERE ROWNUM <=5]]> 
+	</select>
+	
+	
+	<!-- 게시글 번호 추출 -->
+	<select id="selectBoardNo" resultType="_int">
+		SELECT SEQ_BNO.NEXTVAL
+		FROM DUAL
+	</select>
+	
+	<!-- 사진게시글용 등록 -->
+	 <insert id="insertAtBoard" parameterType="Board">
+	 	INSERT INTO BOARD   (
+	 						 BOARD_NO
+							,BOARD_TITLE
+							,BOARD_WRITER
+							,BOARD_CONTENT
+							)
+	 				VALUES (
+	 						#{boardNo}
+	 					   ,#{boardTitle}
+	 					   ,#{boardWriter}
+	 					   ,#{boardContent}
+	 					   )
+	 </insert>
+	 
+	 <!-- 사진 정보 등록 -->
+	 <insert id="insertAttachment">
+	 	INSERT INTO ATTACHMENT ( FILE_NO
+								,REF_BNO
+								,ORIGIN_NAME
+								,CHANGE_NAME
+								,FILE_PATH
+								,FILE_LEVEL
+								)
+						VALUES (
+								SEQ_FNO.NEXTVAL
+							   ,#{refBno}
+							   ,#{originName}
+							   ,#{changeName}
+							   ,#{filePath}
+							   ,#{fileLevel}
+								)
+	 </insert>
+	 
+	 
+	 <!-- 사진게시글 목록 조회 -->
+	 <select id="photoList" resultMap="boardResultMap">
+	 	SELECT BOARD_NO
+		      ,BOARD_TITLE
+		      ,COUNT
+		      ,AT.FILE_PATH||AT.CHANGE_NAME filePath
+		FROM BOARD B
+		JOIN ATTACHMENT AT ON (BOARD_NO=REF_BNO)
+		WHERE FILE_LEVEL = 1
+	 </select>
+	 
+	 <!-- 사진 게시글 상세 조회 -->
+	 <select id="photoDetail" resultMap="photoResultMap">
+	 	SELECT BOARD_NO
+		      ,BOARD_WRITER
+		      ,BOARD_TITLE
+		      ,BOARD_CONTENT
+		      ,CREATE_DATE
+		      ,FILE_NO
+		      ,AT.ORIGIN_NAME
+		      ,AT.CHANGE_NAME
+		      ,FILE_PATH
+		FROM BOARD B
+		JOIN ATTACHMENT AT ON (BOARD_NO=REF_BNO)
+		WHERE BOARD_NO = #{bno}
+	 
+	 </select>
+	 
+	 
+	 <resultMap type="Board" id="photoResultMap">
+	 	<result column="BOARD_NO" property="boardNo"/>
+		<result column="BOARD_TITLE" property="boardTitle"/>
+		<result column="BOARD_WRITER" property="boardWriter"/>
+		<result column="BOARD_CONTENT" property="boardContent"/>
+		<result column="CREATE_DATE" property="createDate"/>
+	 	
+	 	<!-- 파일 정보를 담아줄 설정  -->
+	 	<collection property="atList" ofType="Attachment">
+	 		<result column="FILE_NO" property="fileNo"/>
+	 		<result column="ORIGIN_NAME" property="originName"/>
+	 		<result column="CHANGE_NAME" property="changeName"/>
+	 		<result column="FILE_PATH" property="filePath"/>
+	 	</collection>
+	 </resultMap>
+	 
+	 
+	 
+	
+	 
+  
+</mapper>

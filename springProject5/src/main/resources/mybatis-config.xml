@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 마이바티스에 필요한 설정들을 작성하는 설정파일 -->
+ 	<settings>
+ 		<!-- 자바에서 null값이 전달되었을때 mybatis에서 어떻게 처리할것인지에 대한 설정(NULL로 인식해라) -->
+ 		<setting name="jdbcTypeForNull" value="NULL"/>
+ 	
+ 	</settings>
+	
+	
+	<!-- 사용할 클래스 풀 경로를 짧게 줄여쓸 수 있도록 타입 별칭 부여하기 -->
+	<typeAliases>
+		<typeAlias type="com.kh.spring.member.model.vo.Member" alias="Member"/>
+		<typeAlias type="com.kh.spring.board.model.vo.Board" alias="Board"/>
+		<typeAlias type="com.kh.spring.board.model.vo.Reply" alias="Reply"/>
+		<typeAlias type="com.kh.spring.board.model.vo.Attachment" alias="Attachment"/>
+		<typeAlias type="com.kh.spring.transaction.model.vo.Product" alias="Product"/>
+		<typeAlias type="com.kh.spring.transaction.model.vo.Category" alias="Category"/>
+		
+	</typeAliases>
+	
+	
+	
+	
+	
+	
+	
+</configuration>
