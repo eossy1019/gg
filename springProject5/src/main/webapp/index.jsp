@@ -8,6 +8,7 @@
 </head>
 <body>
 	<h1>Spring </h1>
+	<!-- 헤헤 -->
 	
 	<jsp:forward page="/WEB-INF/views/main.jsp"/>
 	
